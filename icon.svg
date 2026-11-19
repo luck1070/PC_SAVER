@@ -1,0 +1,68 @@
+
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 512 512">
+
+  <defs>
+    <linearGradient id="bg"
+      x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#172b49"/>
+      <stop offset="100%" stop-color="#0b0f19"/>
+    </linearGradient>
+
+    <linearGradient id="neon"
+      x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" rx="110" fill="url(#bg)"/>
+
+  <rect x="48" y="48" width="416" height="416"
+        rx="85" fill="none"
+        stroke="url(#neon)" stroke-width="8"/>
+
+  <path d="M155 205
+           C125 205 105 225 95 265
+           L75 340
+           C65 385 110 410 140 375
+           L180 330
+           H332
+           L372 375
+           C402 410 447 385 437 340
+           L417 265
+           C407 225 387 205 357 205 Z"
+        fill="#1c2b43"
+        stroke="url(#neon)"
+        stroke-width="12"/>
+
+  <path d="M145 250 V305 M118 277 H172"
+        stroke="#22d3ee"
+        stroke-width="16"
+        stroke-linecap="round"/>
+
+  <circle cx="355" cy="260" r="13" fill="#a855f7"/>
+  <circle cx="385" cy="290" r="13" fill="#22d3ee"/>
+
+  <path d="M256 125
+           C220 125 205 150 205 177
+           C205 204 225 222 256 222
+           C287 222 307 204 307 177
+           C307 150 292 125 256 125 Z"
+        fill="none"
+        stroke="#34d399"
+        stroke-width="12"/>
+
+  <path d="M256 145 V200 M240 160 H269
+           M240 183 H270"
+        stroke="#34d399"
+        stroke-width="9"
+        stroke-linecap="round"/>
+
+  <text x="256" y="445"
+        text-anchor="middle"
+        font-size="43"
+        font-weight="900"
+        font-family="Arial, sans-serif"
+        fill="#f8fafc">PC SAVER</text>
+</svg>

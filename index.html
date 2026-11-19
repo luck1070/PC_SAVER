@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+  <meta name="theme-color" content="#101522">
+  <meta name="description"
+    content="ゲーミングPC購入を目指す貯金管理アプリ">
+
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style"
+    content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="PC SAVER">
+
+  <title>PC SAVER</title>
+
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icon.svg">
+  <link rel="stylesheet" href="./style.css">
+
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./service-worker.js")
+          .catch(error =>
+            console.error("SW登録失敗:", error)
+          );
+      });
+    }
+  </script>
+</head>
+
+<body>
+<div class="app">
+
+  <!-- ヘッダー -->
+  <header class="header">
+    <div>
+      <h1>PC SAVER</h1>
+      <p>YOUR GAMING PC FUND</p>
+    </div>
+
+    <div class="header-icon" aria-hidden="true">🎮</div>
+  </header>
+
+  <main>
+
+    <!-- 貯金残高 -->
+    <section class="card savings-card">
+      <p class="section-label">現在の貯金額</p>
+
+      <h2 id="totalSavings">¥0</h2>
+
+      <div
+        class="progress-container"
+        role="progressbar"
+        aria-label="貯金目標達成率"
+        aria-valuemin="0"
+        aria-valuemax="100"
+      >
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+
+      <div class="progress-info">
+        <span id="progressPercent">0%</span>
+        <span id="goalAmount">目標 ¥200,000</span>
+      </div>
+
+      <div class="estimate-box">
+        <span>🏁 目標達成予想 & 期限判定</span>
+
+        <strong id="achievementDate">
+          計算中...
+        </strong>
+
+        <small id="estimateRemaining">
+          貯金ペースを計算しています
+        </small>
+      </div>
+
+      <details class="calc-note">
+        <summary>💡 予想日・不足額の計算ルールについて</summary>
+        <ul>
+          <li>
+            <strong>1日の平均貯金ペース：</strong>
+            直近30日間の貯金合計 ÷ 30日
+          </li>
+          <li>
+            <strong>達成予想日：</strong>
+            今日 ＋（目標までの残り金額 ÷ 1日の平均ペース）
+          </li>
+          <li>
+            <strong>期限までの不足額：</strong>
+            目標までの残り金額 −（1日の平均ペース × 期限までの残り日数）
+          </li>
+        </ul>
+        <p>※直近30日間の実績をもとにした目安です。焦らず自分のペースで進めましょう！</p>
+      </details>
+    </section>
+
+    <!-- 今日のお金 -->
+    <section class="money-grid">
+
+      <div class="card money-card">
+        <p>今日の利用額</p>
+        <h3 id="todaySpent">¥0</h3>
+      </div>
+
+      <div class="card money-card">
+        <p>今日の残り</p>
+        <h3 id="todayRemaining">¥0</h3>
+      </div>
+
+    </section>
+
+    <!-- 月間予算 -->
+    <section class="card">
+      <h2>📊 今月の予算</h2>
+
+      <div class="budget-row">
+        <span>今月の支出</span>
+        <strong id="monthlySpent">¥0</strong>
+      </div>
+
+      <div
+        class="progress-container budget-progress"
+        role="progressbar"
+        aria-label="月間予算の使用率"
+        aria-valuemin="0"
+        aria-valuemax="100"
+      >
+        <div
+          class="progress-bar"
+          id="monthlyBudgetBar"
+        ></div>
+      </div>
+
+      <div class="budget-row">
+        <span>予算使用率</span>
+        <strong id="monthlyBudgetPercent">0%</strong>
+      </div>
+
+      <div class="budget-row">
+        <span>今月の残り予算</span>
+        <strong id="monthlyRemaining">¥0</strong>
+      </div>
+
+      <p class="hint" id="monthlyBudgetStatus">
+        予算内で管理しましょう！
+      </p>
+    </section>
+
+    <!-- 月間グラフ -->
+    <section class="card">
+      <h2>📈 月間収支グラフ</h2>
+
+      <div class="chart-legend">
+        <span>
+          <i class="legend-expense"></i>
+          支出
+        </span>
+
+        <span>
+          <i class="legend-deposit"></i>
+          貯金
+        </span>
+      </div>
+
+      <div class="chart-wrapper">
+        <canvas
+          id="monthlyChart"
+          height="220"
+          aria-label="今月の日別支出と貯金のグラフ"
+          role="img"
+        >
+          月間収支グラフ
+        </canvas>
+      </div>
+
+      <div class="chart-summary">
+
+        <div>
+          <small>今月の支出</small>
+          <strong id="monthlyExpense">¥0</strong>
+        </div>
+
+        <div>
+          <small>今月の貯金</small>
+          <strong id="monthlyIncome">¥0</strong>
+        </div>
+
+        <div>
+          <small>今月の収支</small>
+          <strong id="monthlyBalance">¥0</strong>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 設定 -->
+    <section class="card">
+      <h2>⚙️ お小遣い・目標設定</h2>
+
+      <div class="setting-item">
+        <label for="monthlyAllowance">
+          月にもらえるお金
+        </label>
+
+        <input
+          type="number"
+          id="monthlyAllowance"
+          placeholder="10000"
+          min="0"
+          step="1"
+          inputmode="numeric"
+        >
+      </div>
+
+      <div class="setting-item">
+        <label for="dailyLimit">
+          1日の利用限度額
+        </label>
+
+        <input
+          type="number"
+          id="dailyLimit"
+          placeholder="300"
+          min="0"
+          step="1"
+          inputmode="numeric"
+        >
+      </div>
+
+      <div class="setting-item">
+        <label for="monthlyBudget">
+          1か月の支出予算
+        </label>
+
+        <input
+          type="number"
+          id="monthlyBudget"
+          placeholder="10000"
+          min="0"
+          step="1"
+          inputmode="numeric"
+        >
+      </div>
+
+      <div class="setting-item">
+        <label for="goalInput">
+          貯金目標金額
+        </label>
+
+        <input
+          type="number"
+          id="goalInput"
+          placeholder="200000"
+          min="1"
+          step="1"
+          inputmode="numeric"
+        >
+      </div>
+
+      <div class="setting-item">
+        <label for="monthlyTargetInput">
+          毎月の貯金目標額
+        </label>
+
+        <input
+          type="number"
+          id="monthlyTargetInput"
+          placeholder="20000"
+          min="0"
+          step="1"
+          inputmode="numeric"
+        >
+      </div>
+
+      <div class="setting-item">
+        <label for="deadlineInput">
+          貯金目標の期限日
+        </label>
+
+        <input
+          type="date"
+          id="deadlineInput"
+        >
+      </div>
+
+      <button
+        type="button"
+        id="saveSettings"
+        class="primary-button"
+      >
+        設定を保存
+      </button>
+    </section>
+
+    <!-- 支出登録 -->
+    <section class="card">
+      <h2>🛒 今日の支出を記録</h2>
+
+      <div class="setting-item">
+        <label for="expenseName">
+          何に使った？
+        </label>
+
+        <input
+          type="text"
+          id="expenseName"
+          placeholder="例：ジュース"
+          maxlength="60"
+        >
+      </div>
+
+      <div class="setting-item">
+        <label for="expenseAmount">
+          使った金額
+        </label>
+
+        <input
+          type="number"
+          id="expenseAmount"
+          placeholder="例：150"
+          min="1"
+          step="1"
+          inputmode="numeric"
+        >
+      </div>
+
+      <button
+        type="button"
+        id="addExpense"
+        class="primary-button"
+      >
+        支出を登録する
+      </button>
+    </section>
+
+    <!-- 貯金 -->
+    <section class="card">
+      <h2>🏦 貯金する</h2>
+
+      <div class="setting-item">
+        <label for="depositAmount">
+          貯金する金額
+        </label>
+
+        <input
+          type="number"
+          id="depositAmount"
+          placeholder="例：500"
+          min="1"
+          step="1"
+          inputmode="numeric"
+        >
+      </div>
+
+      <button
+        type="button"
+        id="addDeposit"
+        class="primary-button"
+      >
+        貯金に追加する
+      </button>
+    </section>
+
+    <!-- 実績 -->
+    <section class="card">
+      <h2>🏆 実績・称号</h2>
+
+      <p class="section-description">
+        貯金を続けて称号を集めよう！
+      </p>
+
+      <div class="achievement-summary">
+        <p>現在の称号</p>
+        <strong id="currentTitle">
+          🌱 貯金スタート
+        </strong>
+
+        <p>
+          達成した実績：
+          <strong id="achievementCount">0 / 5</strong>
+        </p>
+      </div>
+
+      <div
+        id="achievementList"
+        class="achievement-grid"
+      ></div>
+    </section>
+
+    <!-- バックアップ -->
+    <section class="card">
+      <h2>💾 データ管理</h2>
+
+      <p class="section-description">
+        大切な貯金データをバックアップできます。
+      </p>
+
+      <button
+        type="button"
+        id="backupButton"
+        class="primary-button"
+      >
+        📥 バックアップを保存
+      </button>
+
+      <div class="setting-item backup-input">
+        <label for="restoreInput">
+          バックアップから復元
+        </label>
+
+        <input
+          type="file"
+          id="restoreInput"
+          accept=".json,application/json"
+        >
+      </div>
+
+      <p class="hint">
+        復元すると現在のデータが置き換わります。
+        復元前にバックアップを保存してください。
+      </p>
+    </section>
+
+    <!-- 履歴 -->
+    <section class="card">
+      <h2>📋 支出・貯金履歴</h2>
+
+      <div id="historyList">
+        <p class="empty-message">
+          まだ記録がありません
+        </p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- フッター -->
+  <footer>
+    <p>PC SAVER © 2026</p>
+    <p>KEEP SAVING, KEEP GAMING.</p>
+  </footer>
+
+</div>
+
+<script src="./script.js"></script>
+
+</body>
+</html>
